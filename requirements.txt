@@ -4,3 +4,5 @@ pydantic
 sqlalchemy
 langchain[openai]
 langgraph
+python-dotenv
+

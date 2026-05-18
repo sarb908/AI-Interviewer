@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request, Request, status
+from fastapi import APIRouter, HTTPException, status
 from uuid import UUID, uuid1
 from llm import evaluate_answer, final_evaluation, generate_questions
 from schema.session import AnswerSubmitSchema, SessionBase, SessionDisplay

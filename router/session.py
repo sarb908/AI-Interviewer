@@ -7,6 +7,7 @@ from schema.session import AnswerSubmitSchema, SessionBase, SessionDisplay
 
 router = APIRouter(prefix="/session", tags=["session"])
 
+# In-memory storage for sessions, replace with DB in production
 sessions:dict[str, SessionDisplay] = {}
 
 @router.post("/", response_model=SessionDisplay)
@@ -34,7 +35,6 @@ def get_session(session_id: str):
 
 @router.post("/sessions/{id}/answers")
 async def submit_answers(request:AnswerSubmitSchema, id: str):
-
     session = sessions.get(id)
     data =  request
     answer = data.answer
@@ -45,23 +45,22 @@ async def submit_answers(request:AnswerSubmitSchema, id: str):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Session not found"
         )
-    print( "question", session.questions[current_question_idx].question, "answer", answer)
+    # print( "question", session.questions[current_question_idx].question, "answer", answer)
     feedback = evaluate_answer(
         session.questions[current_question_idx].question,
         answer
     )
-    print( "feedback", feedback)
+    # print( "feedback", feedback)
     session.questions[current_question_idx].feedback = feedback
     session.questions[current_question_idx].answer = answer
     session.current_question_idx += 1  
+
     if session.current_question_idx >= len(session.questions):
         return {"message": "All questions answered", "session": session} 
 
-    # Process the submitted answers
     return {"question_idx": session.current_question_idx, "feedback": feedback, "session": session}
 
 
-# compile a professional final report
 @router.get("/sessions/{id}/final_report")
 def generate_final_report(id: str):
     session = sessions.get(id)
@@ -70,9 +69,6 @@ def generate_final_report(id: str):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Session not found"
         )
-    
-    # Compile the final report using the questions, answers, and feedback
-    # You can use the llm to generate a professional report based on the collected data
     final_report = final_evaluation(session)
     session.final_report = final_report
     return {"message": "Final report generated", "session": session}

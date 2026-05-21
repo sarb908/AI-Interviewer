@@ -1,7 +1,17 @@
-from fastapi import APIRouter, HTTPException, status
-from uuid import UUID, uuid4
-from schema.session import AnswerSubmitSchema, CreateSessionRequest, SessionBase, SessionDisplay, SubmitAnswerResponse
+import os
+from io import BytesIO
+from fastapi import APIRouter, HTTPException, status, UploadFile, File
+from fastapi.responses import Response
+from uuid import  uuid4
+from schema.session import AnswerSubmitSchema, CreateSessionRequest, SessionDisplay, SubmitAnswerResponse, TTSRequest
 from llm_langgraph import compiled_graph, InterviewState  , evaluate_answer  , generate_final_report
+from openai import OpenAI
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 
 router = APIRouter(prefix="/sessions", tags=["session"])
@@ -142,3 +152,130 @@ def final_report(id: str):
         "current_question_idx":current_state.values["current_question_idx"],
         "final_report":current_state.values["final_report"]
     }
+
+
+@router.post("/tts")
+async def text_to_speech(request: TTSRequest):
+    """
+    Convert text to speech using OpenAI's TTS API.
+    Returns audio file in mp3 format.
+    """
+    try:
+        # Initialize OpenAI client
+        client = OpenAI(api_key=OPENAI_API_KEY)
+        
+        # Generate speech using OpenAI TTS
+        response = client.audio.speech.create(
+            model="tts-1",  # or "tts-1-hd" for higher quality
+            voice=request.voice,
+            input=request.text
+        )
+        
+        # Return audio as streaming response
+        audio_content = response.content
+        
+        return Response(
+            content=audio_content,
+            media_type="audio/mpeg",
+            headers={
+                "Content-Disposition": "inline; filename=speech.mp3"
+            }
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"TTS Error: {str(e)}")
+
+
+
+@router.post("/stt")
+async def speech_to_text(audio: UploadFile = File(...)):
+    """
+    🎤 SPEECH-TO-TEXT ENDPOINT
+    
+    Convert speech to text using OpenAI's Whisper API.
+    Accepts audio file and returns transcribed text.
+    
+    Request: Multipart form data with audio file
+    
+    Response example:
+    {
+        "text": "This is my answer to your question...",
+        "language": "en",
+        "duration": 5.2
+    }
+    """
+    try:
+        # ========================================
+        # STEP A: Validate Audio File
+        # ========================================
+        if not audio.filename:
+            raise HTTPException(
+                status_code=400,
+                detail="No audio file provided"
+            )
+        
+        # Check file format (Whisper supports: mp3, mp4, mpeg, mpga, m4a, wav, webm)
+        allowed_extensions = ['.mp3', '.mp4', '.mpeg', '.mpga', '.m4a', '.wav', '.webm']
+        file_extension = os.path.splitext(audio.filename)[1].lower()
+        
+        if file_extension not in allowed_extensions:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unsupported audio format: {file_extension}. Supported: {', '.join(allowed_extensions)}"
+            )
+        
+        # ========================================
+        # STEP B: Read Audio Data
+        # ========================================
+        audio_data = await audio.read()
+        
+        if len(audio_data) == 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Uploaded audio file is empty"
+            )
+        
+        # ========================================
+        # STEP C: Connect to OpenAI
+        # ========================================
+        client = OpenAI(api_key=OPENAI_API_KEY)
+        
+        # ========================================
+        # STEP D: Transcribe Audio
+        # ========================================
+        # Create file-like object for OpenAI
+        audio_file = BytesIO(audio_data)
+        audio_file.name = audio.filename
+        
+        # Call Whisper API
+        transcript = client.audio.transcriptions.create(
+            model="whisper-1",
+            file=audio_file,
+            language="en",
+            response_format="verbose_json"
+        )
+        
+        # ========================================
+        # STEP E: Return Transcription
+        # ========================================
+        return {
+            "text": transcript.text,
+            "language": transcript.language,
+            "duration": transcript.duration
+        }
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions (validation errors)
+        raise
+        
+    except Exception as e:
+        # Log error for debugging
+        print(f"STT Error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"STT Error: {str(e)}"
+        )
+    
+    finally:
+        # Cleanup - close the uploaded file
+        await audio.close()

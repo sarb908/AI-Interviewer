@@ -10,7 +10,13 @@ from dotenv import load_dotenv
 from dependencies.auth import get_current_user
 
 
-load_dotenv()
+# Find the project root directory and load the .env file
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+env_path = os.path.join(project_root, ".env")
+if os.path.exists(env_path):
+    load_dotenv(env_path)
+else:
+    load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 

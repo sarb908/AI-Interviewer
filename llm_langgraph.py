@@ -8,10 +8,13 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
 
-
-load_dotenv()
-
-
+# Find the project root directory and load the .env file
+project_root = os.path.dirname(os.path.abspath(__file__))
+env_path = os.path.join(project_root, ".env")
+if os.path.exists(env_path):
+    load_dotenv(env_path)
+else:
+    load_dotenv()
 
 # ---------------------------
 # LLM Setup (use env var OPENAI_API_KEY)

@@ -2,6 +2,10 @@
 
 > **IntervueAI** is a production-ready, full-stack AI-powered mock interview application. It simulates realistic, role-specific, and skill-specific technical interviews using conversational AI agents, real-time voice processing, and detailed candidate feedback reports.
 
+### 🔗 Repository Links
+* **Frontend Application**: [github.com/sarb908/IntervueAI-Frontend](https://github.com/sarb908/IntervueAI-Frontend)
+* **Backend Service**: [github.com/sarb908/AI-Interviewer](https://github.com/sarb908/AI-Interviewer)
+
 ---
 
 ## 🖼️ Application Screenshots

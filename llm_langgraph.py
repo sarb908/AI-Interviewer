@@ -98,6 +98,7 @@ Create a professional final report including:
 4. Technical competency score (average of all scores)
 5. Recommendation (Pass/Fail/Consider with conditions)
 6. Detailed breakdown of each question
+7. Include date of now                                                       7
 
 
 Format as a professional report.

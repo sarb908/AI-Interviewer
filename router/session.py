@@ -1,12 +1,13 @@
 import os
 from io import BytesIO
-from fastapi import APIRouter, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, HTTPException, status, UploadFile, File, Depends
 from fastapi.responses import Response
 from uuid import  uuid4
 from schema.session import AnswerSubmitSchema, CreateSessionRequest, SessionDisplay, SubmitAnswerResponse, TTSRequest
 from llm_langgraph import compiled_graph, InterviewState  , evaluate_answer  , generate_final_report
 from openai import OpenAI
 from dotenv import load_dotenv
+from dependencies.auth import get_current_user
 
 
 load_dotenv()
@@ -14,7 +15,7 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 
-router = APIRouter(prefix="/sessions", tags=["session"])
+router = APIRouter(prefix="/sessions", tags=["session"], dependencies=[Depends(get_current_user)])
 
 
 

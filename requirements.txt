@@ -5,4 +5,4 @@ sqlalchemy
 langchain[openai]
 langgraph
 python-dotenv
-
+firebase-admin

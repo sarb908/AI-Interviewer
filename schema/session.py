@@ -36,3 +36,8 @@ class SubmitAnswerResponse(BaseModel):
     next_question_idx: Optional[int] = None
     next_question: Optional[str] = None
     questions:List[str]
+
+
+class TTSRequest(BaseModel):
+    text: str  # Required: Text to convert to speech
+    voice: str = "alloy"  # Optional: Voice selection

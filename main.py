@@ -7,7 +7,7 @@ app = FastAPI(title="AI Interviewer Backend", version="0.1.0")
 app.include_router(session_router)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://ai-interviewer-frontend.vercel.app"],
+    allow_origins=["http://localhost:3000"],
     allow_methods=["*"],
     allow_headers=["*"],
 )

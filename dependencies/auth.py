@@ -3,21 +3,24 @@ import firebase_admin
 from firebase_admin import credentials, auth
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Get the path to the service account key
-cred_path = os.getenv("FIREBASE_SERVICE_ACCOUNT_KEY")
+# Get credentials configuration
+firebase_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_KEY")
 
 # Initialize Firebase Admin SDK
 try:
     if not firebase_admin._apps:
-        if cred_path and os.path.exists(cred_path):
-            cred = credentials.Certificate(cred_path)
+        if firebase_json:
+            # Initialize using credentials JSON string (recommended for Vercel)
+            cred_dict = json.loads(firebase_json)
+            cred = credentials.Certificate(cred_dict)
             firebase_admin.initialize_app(cred)
         else:
-            # Fallback to default credentials (e.g. environment variable GOOGLE_APPLICATION_CREDENTIALS)
+            # Fallback to default credentials
             firebase_admin.initialize_app()
 except Exception as e:
     # Log the warning but don't crash startup immediately; route calls will fail if not configured

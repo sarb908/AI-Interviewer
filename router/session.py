@@ -19,7 +19,7 @@ router = APIRouter(prefix="/sessions", tags=["session"], dependencies=[Depends(g
 
 
 
-@router.post("/", response_model=SessionDisplay, status_code=201)
+@router.post("", response_model=SessionDisplay, status_code=201)
 async def create_session(request: CreateSessionRequest):
     """Create a new interview session using LangGraph workflow."""
     session_id = str(uuid4())
